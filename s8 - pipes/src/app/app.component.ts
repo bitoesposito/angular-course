@@ -9,8 +9,7 @@ import { SortPipe } from './sort.pipe';
   templateUrl: './app.component.html',
   imports: [
     DatePipe,
-    TemperaturePipe,
-    SortPipe
+    TemperaturePipe
   ]
 })
 export class AppComponent {
