@@ -2,8 +2,8 @@ import { Injectable, signal } from '@angular/core';
 
 import { Place } from './place.model';
 import { HttpClient } from '@angular/common/http';
-
 import { catchError, map, tap, throwError } from 'rxjs';
+import { ErrorService } from '../shared/error.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +12,8 @@ export class PlacesService {
   private userPlaces = signal<Place[]>([]);
 
   constructor(
-    private httpClient: HttpClient
+    private httpClient: HttpClient,
+    private errorService: ErrorService
   ) {}
 
   loadedUserPlaces = this.userPlaces.asReadonly();
@@ -31,12 +32,6 @@ export class PlacesService {
   }
 
   addPlaceToUserPlaces(place: Place) {
-    // Controlla se il posto è già nella lista
-    const currentPlaces = this.userPlaces();
-    if (currentPlaces.some(p => p.id === place.id)) {
-      return throwError(() => new Error('Place already in favorites'));
-    }
-
     return this.httpClient.put('http://localhost:3000/user-places', {
       placeId: place.id,
     })
@@ -46,12 +41,29 @@ export class PlacesService {
         this.userPlaces.update(prevPlaces => [...prevPlaces, place]);
       }),
       catchError((error) => {
-        return throwError(() => new Error('Failed to add place to user places'))
+        const errorMessage = error.error?.message || 'Failed to add place to user places';
+        this.errorService.showError(errorMessage);
+        return throwError(() => new Error(errorMessage));
       })
     )
   }
 
-  removeUserPlace(place: Place) {}
+  removeUserPlace(place: Place) {
+    const prevPlaces = this.userPlaces()
+
+    if (prevPlaces.some(p => p.id === place.id)) {
+      this.userPlaces.set(prevPlaces.filter(p => p.id !== place.id));
+    }
+
+    return this.httpClient.delete(`http://localhost:3000/user-places/${place.id}`)
+    .pipe(
+      catchError((error) => {
+        const errorMessage = error.error?.message || 'Failed to remove place from user places';
+        this.errorService.showError(errorMessage);
+        return throwError(() => new Error(errorMessage));
+      })
+    )
+  }
 
   private fetchPlaces(url: string, errorMessage: string) {
     return this.httpClient

@@ -51,9 +51,11 @@ app.put("/user-places", async (req, res) => {
 
   let updatedUserPlaces = userPlacesData;
 
-  if (!userPlacesData.some((p) => p.id === place.id)) {
-    updatedUserPlaces = [...userPlacesData, place];
+  if (userPlacesData.some((p) => p.id === place.id)) {
+    return res.status(422).json({ message: "Place already in favorites" });
   }
+
+  updatedUserPlaces = [...userPlacesData, place];
 
   await fs.writeFile(
     "./data/user-places.json",

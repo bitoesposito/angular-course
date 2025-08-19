@@ -4,6 +4,7 @@ import { Place } from '../place.model';
 import { PlacesComponent } from '../places.component';
 import { PlacesContainerComponent } from '../places-container/places-container.component';
 import { PlacesService } from '../places.service';
+import { ErrorService } from '../../shared/error.service';
 
 @Component({
   selector: 'app-available-places',
@@ -19,7 +20,8 @@ export class AvailablePlacesComponent {
 
   constructor(
     private destroyRef: DestroyRef,
-    private placesService: PlacesService
+    private placesService: PlacesService,
+    private errorService: ErrorService
   ) {
     this.isFetching.set(true);
     const subscription = this.placesService.loadAvailablePlaces()
@@ -39,7 +41,7 @@ export class AvailablePlacesComponent {
       next: (resData) => console.log('Place added successfully:', resData),
       error: (error) => {
         console.error('Failed to add place:', error.message);
-        // Qui potresti mostrare un messaggio di errore all'utente
+        this.errorService.showError(error.message);
       }
     });
 
