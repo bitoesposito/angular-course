@@ -1,0 +1,40 @@
+
+<main>
+  <div>
+    
+    <h3>Test della Connettività</h3>
+      <p>Prova a disconnettere la tua rete per vedere l'app in azione!</p>
+      <div>
+        <p>Stato attuale: 
+          <span>
+            {{ isOnline() ? '🟢 Online' : '🔴 Offline' }}
+          </span>
+        </p>
+        
+        <!-- Informazioni sulla connessione (solo se online) -->
+        <div *ngIf="isOnline() && connectionInfo">
+          <h4>Informazioni Connessione:</h4>
+          <div>
+            <div>
+              <span>Tipo:</span>
+              <span>{{ connectionInfo?.effectiveType || 'unknown' }}</span>
+            </div>
+            <div>
+              <span>Velocità:</span>
+              <span>{{ connectionInfo?.downlink || 0 }} Mbps</span>
+            </div>
+            <div>
+              <span>Latenza:</span>
+              <span>{{ connectionInfo?.rtt || 0 }}ms</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Messaggio offline -->
+        <div *ngIf="!isOnline()">
+          <p>⚠️ Sei attualmente offline</p>
+          <p>L'app continuerà a funzionare con i dati in cache</p>
+        </div>
+      </div>
+  </div>
+</main>
