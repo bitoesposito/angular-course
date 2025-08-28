@@ -1,0 +1,22 @@
+<main class="flex flex-column justify-content-center align-items-center h-screen">
+  <form class="flex flex-column gap-2 max-w-20rem" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <input
+      type="text"
+      name="username"
+      placeholder="Username"
+      formControlName="username"
+      class="p-2 border-round-md"
+      required
+    />
+    <input
+      type="password"
+      name="password"
+      placeholder="Password"
+      formControlName="password"
+      class="p-2 border-round-md"
+      required
+    />
+    <button type="submit" class="p-1 border-round-md" [disabled]="!form.valid">{{ isLoginMode ? 'Login' : 'Sign Up' }}</button>
+    <span class="cursor-pointer underline text-center text-xs" (click)="onSwitchMode()">Switch to {{ isLoginMode ? 'Sign up' : 'Login' }}</span>
+  </form>
+</main>

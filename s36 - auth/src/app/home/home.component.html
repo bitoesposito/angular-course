@@ -1,0 +1,5 @@
+<main class="flex flex-column justify-content-center align-items-center h-screen">
+  <span>Sei loggato come:</span>
+  <h3>{{ user.username | uppercase }}</h3>
+  <button (click)="logout()">Logout</button>
+</main>
