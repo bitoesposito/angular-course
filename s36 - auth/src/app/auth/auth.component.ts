@@ -18,10 +18,11 @@ export class AuthComponent {
   isLoginMode = true;
   isLoading = false;
   errorMessage = '';
-  authService = inject(AuthService);
-  router = inject(Router);
 
-  constructor() {
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {
     const token = localStorage.getItem('authToken');
     if (token) {
       this.authService.getCurrentUser(token).subscribe({
@@ -70,7 +71,7 @@ export class AuthComponent {
 
     authObservable.subscribe({
       next: (response) => {
-        console.log('✅ Autenticazione riuscita:', response);
+        console.log('Autenticazione riuscita:', response);
         // Salva il token nel localStorage
         localStorage.setItem('authToken', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
@@ -81,7 +82,7 @@ export class AuthComponent {
         this.router.navigate(['/home']);
       },
       error: (error) => {
-        console.error('❌ Errore autenticazione:', error);
+        console.error('Errore autenticazione:', error);
         this.errorMessage = error.error?.message || 'Errore durante l\'autenticazione';
         this.isLoading = false;
       }

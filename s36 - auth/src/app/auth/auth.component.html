@@ -16,6 +16,7 @@
       class="p-2 border-round-md"
       required
     />
+    <p class="text-red-500 m-0 text-xs text-center" *ngIf="errorMessage">{{ errorMessage }}</p>
     <button type="submit" class="p-1 border-round-md" [disabled]="!form.valid">{{ isLoginMode ? 'Login' : 'Sign Up' }}</button>
     <span class="cursor-pointer underline text-center text-xs" (click)="onSwitchMode()">Switch to {{ isLoginMode ? 'Sign up' : 'Login' }}</span>
   </form>
