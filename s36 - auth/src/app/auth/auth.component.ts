@@ -23,21 +23,8 @@ export class AuthComponent {
     private authService: AuthService,
     private router: Router
   ) {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      this.authService.getCurrentUser(token).subscribe({
-        next: (res) => {
-          console.log(res)
-          this.router.navigate(['/home']);
-        },
-        error: (err) => {
-          console.log(err)
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
-          this.router.navigate(['/auth']);
-        }
-      })
-    }
+    // Il NoAuthGuard gestisce già la verifica dell'autenticazione
+    // Non serve duplicare la logica qui
   }
 
   onSwitchMode() {
@@ -71,10 +58,9 @@ export class AuthComponent {
 
     authObservable.subscribe({
       next: (response) => {
-        console.log('Autenticazione riuscita:', response);
-        // Salva il token nel localStorage
-        localStorage.setItem('authToken', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
+        console.log('✅ Autenticazione riuscita:', response);
+        // Salva i dati nei cookie sicuri
+        this.authService.saveAuthData(response.token, response.user);
         
         // Reset del form
         this.form.reset();
@@ -82,7 +68,7 @@ export class AuthComponent {
         this.router.navigate(['/home']);
       },
       error: (error) => {
-        console.error('Errore autenticazione:', error);
+        console.error('❌ Errore autenticazione:', error);
         this.errorMessage = error.error?.message || 'Errore durante l\'autenticazione';
         this.isLoading = false;
       }

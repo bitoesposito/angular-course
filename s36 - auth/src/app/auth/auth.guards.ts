@@ -1,29 +1,38 @@
-import { inject, Injectable } from "@angular/core";
-import { AuthService } from "./auth.service";
-import { CanActivate, CanActivateFn, Router } from "@angular/router";
-import { catchError, map, Observable, of } from "rxjs";
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from './auth.service';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthGuard implements CanActivate {
-  private authService = inject(AuthService);
-  private router = inject(Router);
+/**
+ * Guard per proteggere le route che richiedono autenticazione
+ * Verifica se l'utente è autenticato tramite cookie
+ */
+export const AuthGuard = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
 
-  canActivate(): Observable<boolean> {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      this.router.navigate(['/']);
-      return of(false);
-    }
-    return this.authService.getCurrentUser(token).pipe(
-      map((res) => {
-        return true;
-      }),
-      catchError((err) => {
-        this.router.navigate(['/']);
-        return of(false);
-        })
-    )
+  // Verifica se l'utente è autenticato tramite cookie
+  if (authService.isAuthenticated()) {
+    return true;
   }
-}
+
+  // Se non autenticato, reindirizza alla pagina di login
+  router.navigate(['/auth']);
+  return false;
+};
+
+/**
+ * Guard per proteggere le route di login/registrazione
+ * Reindirizza alla home se l'utente è già autenticato
+ */
+export const NoAuthGuard = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  // Se l'utente è già autenticato, reindirizza alla home
+  if (authService.isAuthenticated()) {
+    router.navigate(['/home']);
+    return false;
+  }
+
+  return true;
+};

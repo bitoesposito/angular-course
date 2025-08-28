@@ -1,28 +1,58 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [
-    CommonModule
-  ],
+  imports: [CommonModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
 export class HomeComponent {
-  user: any;
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
-  constructor(
-    private router: Router
-  ) {
-    this.user = JSON.parse(localStorage.getItem('user') || '{}');
+  user: any = null;
+  hasToken: boolean = false;
+  isAuthenticated: boolean = false;
+
+  constructor() {
+    this.loadUserData();
   }
 
-  logout() {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    this.router.navigate(['/']);
+  /**
+   * Carica i dati dell'utente dai cookie
+   */
+  loadUserData(): void {
+    this.user = this.authService.getUser();
+    this.hasToken = !!this.authService.getToken();
+    this.isAuthenticated = this.authService.isAuthenticated();
+  }
+
+  /**
+   * Effettua il logout e reindirizza alla pagina di login
+   */
+  logout(): void {
+    if (this.authService.isAuthenticated()) {
+      this.authService.logout().subscribe({
+        next: (response) => {
+          console.log('✅ Logout effettuato:', response);
+          this.authService.clearAuthData();
+          this.router.navigate(['/auth']);
+        },
+        error: (error) => {
+          console.error('❌ Errore durante il logout:', error);
+          // Anche in caso di errore, elimina i cookie locali
+          this.authService.clearAuthData();
+          this.router.navigate(['/auth']);
+        }
+      });
+    } else {
+      // Se non c'è token, elimina comunque i cookie e reindirizza
+      this.authService.clearAuthData();
+      this.router.navigate(['/auth']);
+    }
   }
 } 
