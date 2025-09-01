@@ -58,7 +58,7 @@ export class AuthComponent {
 
     authObservable.subscribe({
       next: (response) => {
-        console.log('✅ Autenticazione riuscita:', response);
+        // Autenticazione riuscita
         // Salva i dati nei cookie sicuri
         this.authService.saveAuthData(response.token, response.user);
         
@@ -68,7 +68,7 @@ export class AuthComponent {
         this.router.navigate(['/home']);
       },
       error: (error) => {
-        console.error('❌ Errore autenticazione:', error);
+        // Gestione errore autenticazione
         this.errorMessage = error.error?.message || 'Errore durante l\'autenticazione';
         this.isLoading = false;
       }

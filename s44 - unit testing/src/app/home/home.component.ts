@@ -35,22 +35,20 @@ export class HomeComponent {
    * Effettua il logout e reindirizza alla pagina di login
    */
   logout(): void {
-    if (this.authService.isAuthenticated()) {
+    if (this.isAuthenticated) {
       this.authService.logout().subscribe({
-        next: (response) => {
-          console.log('✅ Logout effettuato:', response);
+        next: () => {
           this.authService.clearAuthData();
           this.router.navigate(['/auth']);
         },
-        error: (error) => {
-          console.error('❌ Errore durante il logout:', error);
-          // Anche in caso di errore, elimina i cookie locali
+        error: () => {
+          // Anche in caso di errore, puliamo i dati locali
           this.authService.clearAuthData();
           this.router.navigate(['/auth']);
         }
       });
     } else {
-      // Se non c'è token, elimina comunque i cookie e reindirizza
+      // Se non autenticato, puliamo solo i dati locali
       this.authService.clearAuthData();
       this.router.navigate(['/auth']);
     }

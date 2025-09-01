@@ -32,7 +32,9 @@ describe('AuthService', () => {
     const cookieServiceSpy = jasmine.createSpyObj('CookieService', [
       'getCookie', 
       'setCookie', 
-      'deleteCookie'
+      'deleteCookie',
+      'hasCookie',
+      'clearAuthCookies'
     ]);
 
     TestBed.configureTestingModule({
@@ -108,6 +110,26 @@ describe('AuthService', () => {
       
       req.flush(mockAuthResponse);
     });
+
+    it('dovrebbe gestire errori di registrazione', () => {
+      const username = 'existinguser';
+      const password = 'password123';
+      const errorMessage = 'Username già esistente';
+
+      service.signup(username, password).subscribe({
+        next: () => fail('Dovrebbe fallire'),
+        error: (error) => {
+          expect(error.status).toBe(409);
+          expect(error.error.message).toBe(errorMessage);
+        }
+      });
+
+      const req = httpMock.expectOne('http://localhost:3001/api/auth/register');
+      req.flush(
+        { message: errorMessage }, 
+        { status: 409, statusText: 'Conflict' }
+      );
+    });
   });
 
   describe('getCurrentUser', () => {
@@ -132,13 +154,30 @@ describe('AuthService', () => {
 
       expect(() => service.getCurrentUser()).toThrowError('Token non trovato');
     });
+
+    it('dovrebbe gestire errori HTTP durante getCurrentUser', () => {
+      cookieService.getCookie.and.returnValue('valid-token');
+
+      service.getCurrentUser().subscribe({
+        next: () => fail('Dovrebbe fallire'),
+        error: (error) => {
+          expect(error.status).toBe(401);
+        }
+      });
+
+      const req = httpMock.expectOne('http://localhost:3001/api/auth/me');
+      req.flush(
+        { message: 'Token non valido' }, 
+        { status: 401, statusText: 'Unauthorized' }
+      );
+    });
   });
 
   describe('Logout', () => {
     it('dovrebbe effettuare il logout con successo', () => {
       cookieService.getCookie.and.returnValue('valid-token');
 
-      service.logout().subscribe(response => {
+      service.logout().subscribe((response: { message: string }) => {
         expect(response.message).toBe('Logout effettuato con successo');
       });
 
@@ -154,6 +193,23 @@ describe('AuthService', () => {
 
       expect(() => service.logout()).toThrowError('Token non trovato');
     });
+
+    it('dovrebbe gestire errori HTTP durante il logout', () => {
+      cookieService.getCookie.and.returnValue('valid-token');
+
+      service.logout().subscribe({
+        next: () => fail('Dovrebbe fallire'),
+        error: (error: any) => {
+          expect(error.status).toBe(500);
+        }
+      });
+
+      const req = httpMock.expectOne('http://localhost:3001/api/auth/logout');
+      req.flush(
+        { message: 'Errore server' }, 
+        { status: 500, statusText: 'Internal Server Error' }
+      );
+    });
   });
 
   describe('Gestione token', () => {
@@ -167,17 +223,48 @@ describe('AuthService', () => {
       service.saveAuthData(token, user);
 
       expect(cookieService.setCookie).toHaveBeenCalledWith('authToken', token, 7);
-      expect(cookieService.setCookie).toHaveBeenCalledWith('userData', JSON.stringify(user), 7);
+      expect(cookieService.setCookie).toHaveBeenCalledWith('user', JSON.stringify(user), 7);
     });
 
     it('dovrebbe verificare se l\'utente è autenticato', () => {
       // Test con token presente
-      cookieService.getCookie.and.returnValue('valid-token');
+      cookieService.hasCookie.and.returnValue(true);
       expect(service.isAuthenticated()).toBe(true);
 
       // Test senza token
-      cookieService.getCookie.and.returnValue(null);
+      cookieService.hasCookie.and.returnValue(false);
       expect(service.isAuthenticated()).toBe(false);
+    });
+
+    it('dovrebbe ottenere il token dai cookie', () => {
+      const expectedToken = 'test-token';
+      cookieService.getCookie.and.returnValue(expectedToken);
+
+      const result = service.getToken();
+      expect(result).toBe(expectedToken);
+      expect(cookieService.getCookie).toHaveBeenCalledWith('authToken');
+    });
+
+    it('dovrebbe ottenere i dati utente dai cookie', () => {
+      const userData = { id: 1, username: 'testuser' };
+      cookieService.getCookie.and.returnValue(JSON.stringify(userData));
+
+      const result = service.getUser();
+      expect(result).toEqual(userData);
+      expect(cookieService.getCookie).toHaveBeenCalledWith('user');
+    });
+
+    it('dovrebbe gestire dati utente mancanti', () => {
+      cookieService.getCookie.and.returnValue(null);
+
+      const result = service.getUser();
+      expect(result).toBeNull();
+    });
+
+    it('dovrebbe eliminare i dati di autenticazione', () => {
+      service.clearAuthData();
+
+      expect(cookieService.clearAuthCookies).toHaveBeenCalled();
     });
   });
 });

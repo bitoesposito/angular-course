@@ -36,7 +36,7 @@ export class AuthService {
     if (token) {
       this.getCurrentUser().subscribe({
         next: (res) => {
-          console.log(res);
+          // Token valido trovato, utente autenticato
         }
       })
     }
@@ -84,25 +84,6 @@ export class AuthService {
   }
 
   /**
-   * Effettua il logout
-   * @returns Observable con messaggio di conferma
-   */
-  logout(): Observable<{ message: string }> {
-    const token = this.cookieService.getCookie('authToken');
-    if (!token) {
-      throw new Error('Token non trovato');
-    }
-
-    return this.http.post<{ message: string }>(
-      `${this.apiUrl}/logout`,
-      {},
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-  }
-
-  /**
    * Salva i dati di autenticazione nei cookie
    * @param token - JWT token
    * @param user - Dati utente
@@ -142,5 +123,20 @@ export class AuthService {
    */
   clearAuthData(): void {
     this.cookieService.clearAuthCookies();
+  }
+
+  /**
+   * Effettua il logout dell'utente
+   * @returns Observable con messaggio di conferma
+   */
+  logout(): Observable<{ message: string }> {
+    const token = this.cookieService.getCookie('authToken');
+    if (!token) {
+      throw new Error('Token non trovato');
+    }
+    
+    return this.http.post<{ message: string }>(`${this.apiUrl}/logout`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
   }
 }
