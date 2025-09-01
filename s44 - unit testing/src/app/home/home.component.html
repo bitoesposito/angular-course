@@ -1,0 +1,20 @@
+<div class="flex flex-column gap-3 h-screen max-w-20rem m-auto justify-content-center align-items-center">
+  
+  <div class="flex flex-column w-full">
+    <h3>Informazioni Utente:</h3>
+    <p class="m-0"><strong>ID:</strong> {{ user.id }}</p>
+    <p class="m-0"><strong>Username:</strong> {{ user.username }}</p>
+    <p class="m-0"><strong>Registrato il:</strong> {{ user.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+  </div>
+
+  <div class="flex flex-column w-full">
+    <button (click)="logout()" class="p-1 border-round-md">
+      Logout
+    </button>
+  </div>
+
+  <div class="flex flex-column w-full">
+    <p class="m-0"><strong>Token presente:</strong> {{ hasToken ? 'Sì' : 'No' }}</p>
+    <p class="m-0"><strong>Autenticato:</strong> {{ isAuthenticated ? 'Sì' : 'No' }}</p>
+  </div>
+</div>
